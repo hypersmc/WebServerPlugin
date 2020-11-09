@@ -1,0 +1,7 @@
+#Webserver configuration
+listeningport: 25567
+EnableWebserver: true #This should always be on.
+debug: false
+#DO NOT HAVE BOTH HTML AND PHP AT TRUE AT ONCE!
+UseHtml: true
+UsePHP: false

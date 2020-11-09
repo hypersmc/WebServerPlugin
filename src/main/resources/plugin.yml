@@ -1,0 +1,14 @@
+name: WebPlugin
+main: me.hypersmc.jumpwatch.humpjump.webserver.Main
+version: 0.5
+api-version: 1.13
+description: Adds the ability to have an intergreated webserver in your Minecraft server. Just add 1 more port and you can use the same ip to see the webserver.
+authors:
+  - JumpWatch
+  - HypersMC
+  - HumpJump
+commands:
+  WebP:
+    description: Gets the IP OR Domain + port for the webserver.
+    permission: web.show
+    usage: /<command>
