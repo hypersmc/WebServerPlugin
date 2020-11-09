@@ -48,14 +48,14 @@ public class Main extends JavaPlugin implements Listener {
         getConfig().options().copyDefaults();
         saveDefaultConfig();
         Logger logger = this.getLogger();
-        /*new UpdateChecker(this, 12345).getVersion(version -> {
+        new UpdateChecker(this, 85640).getVersion(version -> {
             if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
                 logger.info("There is not a new update available.");
 
             } else {
                 logger.info("There is a new update available.");
             }
-        });*/
+        });
         this.getCommand("WebP").setExecutor(new MainCommand());
         if (this.getConfig().getBoolean("UseHtml") && this.getConfig().getBoolean("UsePHP")) {
             logger.warning("Cannot have both HTML and PHP enabled at once! disabling!");

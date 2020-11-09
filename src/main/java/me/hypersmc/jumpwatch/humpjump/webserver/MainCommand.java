@@ -26,20 +26,20 @@ public class MainCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String s, String[] args) {
         if (sender instanceof ConsoleCommandSender) {
-            sender.sendMessage(main.prefix + " Webserver info" + "\n" + Bukkit.getServer().getIp() + main.getConfig().getString("listeningport"));
+            sender.sendMessage(main.prefix + " Webserver info" + "\n" + Bukkit.getServer().getIp().toString() + main.getConfig().getString("listeningport"));
             return true;
         }else {
             if (cmd.getName().equalsIgnoreCase("WebP")) {
                 Player p = (Player) sender;
                 if (args.length == 0) {
-                    sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: " + JSONMessage.create("Go to ").color(ChatColor.DARK_AQUA).then("your webserver").openURL(Bukkit.getServer().getIp() + main.getConfig().getString("listeningport")));
+                    sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: " + JSONMessage.create("Go to ").color(ChatColor.DARK_AQUA).then("your webserver").openURL(Bukkit.getServer().getIp().toString() + main.getConfig().getString("listeningport")));
                     return true;
 
                 }
 
                 if (args[0].equalsIgnoreCase("reload")) {
                     main.reloadConfig();
-                    sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: " + JSONMessage.create("Go to ").color(ChatColor.DARK_AQUA).then("your webserver").openURL(Bukkit.getServer().getIp() + main.getConfig().getString("listeningport")));
+                    sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: " + JSONMessage.create("Go to ").color(ChatColor.DARK_AQUA).then("your webserver").openURL(Bukkit.getServer().getIp().toString() + main.getConfig().getString("listeningport")));
                     return true;
                 }
             }
