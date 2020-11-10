@@ -54,6 +54,7 @@ public class Main extends JavaPlugin implements Listener {
 
             } else {
                 logger.info("There is a new update available.");
+                logger.info("Your version is " + this.getDescription().getVersion() + " newest version " + version);
             }
         });
         this.getCommand("WebP").setExecutor(new MainCommand());
@@ -69,6 +70,10 @@ public class Main extends JavaPlugin implements Listener {
             if (!new File(getDataFolder() + "/web/", "index.php").exists()) {
                 saveResource("web/index.php", false);
             }
+        }else {
+            logger.warning("Neither HTML or PHP was enabled! disabling plugin!");
+            Bukkit.getScheduler().cancelTasks(this);
+            Bukkit.getPluginManager().disablePlugin(this);
         }
         File file = new File("plugins/WebPlugin/web/index.html");
         File file2 = new File("plugins/WebPlugin/web/index.php");

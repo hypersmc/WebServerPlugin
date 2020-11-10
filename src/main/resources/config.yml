@@ -1,7 +1,11 @@
 #Webserver configuration
 listeningport: 25567
 EnableWebserver: true #This should always be on.
+
+#Only enable if I ask you to.
 debug: false
+
 #DO NOT HAVE BOTH HTML AND PHP AT TRUE AT ONCE!
 UseHtml: true
-UsePHP: false
+UsePHP: false #PHP have not been tested but please test it for me.
+EnableSSL: false #This function is not used yet but will be.
