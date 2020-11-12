@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.net.ssl.SSLSocket;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +59,7 @@ public class Main extends JavaPlugin implements Listener {
             }
         });
         this.getCommand("WebP").setExecutor(new MainCommand());
+
         if (this.getConfig().getBoolean("UseHtml") && this.getConfig().getBoolean("UsePHP")) {
             logger.warning("Cannot have both HTML and PHP enabled at once! disabling!");
             Bukkit.getScheduler().cancelTasks(this);
@@ -75,6 +77,7 @@ public class Main extends JavaPlugin implements Listener {
             Bukkit.getScheduler().cancelTasks(this);
             Bukkit.getPluginManager().disablePlugin(this);
         }
+
         File file = new File("plugins/WebPlugin/web/index.html");
         File file2 = new File("plugins/WebPlugin/web/index.php");
         if (!file.exists()){
@@ -87,6 +90,11 @@ public class Main extends JavaPlugin implements Listener {
 
         }
         debug = getConfig().getBoolean("debug");
+        if (new File("plugins/WebPlugin/ssl/sslcert.jks").exists()){
+            logger.info("SSL Folder exist");
+        } else {
+            logger.info("SSL folder doesn't exist.");
+        }
         if (getConfig().getBoolean("EnableWebserver")) {
             if (getConfig().isSet("listeningport")) {
                 Bukkit.getServer().getLogger().info(ChatColor.GRAY + "Found a listening port!");
@@ -117,11 +125,16 @@ public class Main extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 Socket sock;
+                SSLSocket sslSocket;
                 Bukkit.getServer().getLogger().info(ChatColor.AQUA + "accepting connections");
                 while (getAcceptorRunning()) {
                     try {
-                        sock = ss.accept();
-                        new AcceptedSocketConnection(sock, m).start();
+                        if (getConfig().getBoolean("EnableSSL")){
+                            new SSLAcceptedSocketConnection().start();
+                        }else {
+                            sock = ss.accept();
+                            new AcceptedSocketConnection(sock, m).start();
+                        }
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();

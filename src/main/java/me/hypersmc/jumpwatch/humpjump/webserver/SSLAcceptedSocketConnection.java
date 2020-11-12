@@ -11,34 +11,41 @@
 
 package me.hypersmc.jumpwatch.humpjump.webserver;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 import javax.net.ssl.*;
 import java.io.*;
-import java.net.Socket;
 import java.security.KeyStore;
 import java.util.Date;
 import java.util.StringTokenizer;
 
-public class AcceptedSocketConnection extends Thread{
-    Socket sock;
-    Main plugin;
-    String ksName = plugin.getConfig().getString("SSL.SSLJKSName") + ".jks";
-    char ksPass[] = plugin.getConfig().getString("SSL.SSLJKSPass").toCharArray();
-    char ctPass[] = plugin.getConfig().getString("SSL.SSLJKSKey").toCharArray();
+public class SSLAcceptedSocketConnection extends Thread{
+
+    Main main = JavaPlugin.getPlugin(Main.class);
+
+    String ksName = "plugins/WebPlugin/ssl/sslcert.jks";
+    char ksPass[] = main.getConfig().getString("SSLJKSPass").toString().toCharArray();
+    char ctPass[] = main.getConfig().getString("SSLJKSKey").toString().toCharArray();
     String DEFAULT_FILE = "index.html";
     String DEFAULT_FILE2 = "index.php";
-    public AcceptedSocketConnection(Socket sock, Main plugin){
-        this.sock = sock;
-        this.plugin = plugin;
-
-    }
-    @Override
-    public void run() {
+    public void run(){
         BufferedReader in = null; PrintWriter out = null; BufferedOutputStream dataOut = null;
         String fileRequested = null;
         try {
-            in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            out = new PrintWriter(sock.getOutputStream());
-            dataOut = new BufferedOutputStream(sock.getOutputStream());
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(new FileInputStream(ksName), ksPass);
+            KeyManagerFactory kmf =
+                    KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, ctPass);
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(kmf.getKeyManagers(), null, null);
+            SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+            SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(main.getConfig().getInt("listeningport"));
+            SSLSocket c = (SSLSocket) s.accept();
+
+            in = new BufferedReader(new InputStreamReader(c.getInputStream()));
+            out = new PrintWriter(c.getOutputStream());
+            dataOut = new BufferedOutputStream(c.getOutputStream());
             // get first line of the request from the client
             String input = in.readLine();
             // we parse the request with a string tokenizer
@@ -48,26 +55,26 @@ public class AcceptedSocketConnection extends Thread{
             fileRequested = parse.nextToken().toLowerCase();
             String contentMimeType = "text/html";
 
-            String s;
+            String s2;
             int counterr = 0, contentLength = 0;
             //boolean gotEmptyLine = false;//TODO Remember why I did this line lol
             try {
-                while (!(s = in.readLine()).equals("")) {
-                    if (counterr == 0 && s.equalsIgnoreCase(Main.closeConnection)) {
+                while (!(s2 = in.readLine()).equals("")) {
+                    if (counterr == 0 && s2.equalsIgnoreCase(Main.closeConnection)) {
                         out.close();
                         in.close();
-                        sock.close();
+                        s.close();
 
                         return;
                     }
-                    if (s.startsWith("Content-Length: ")) {
-                        contentLength = Integer.parseInt(s.split("Length: ")[1]);
+                    if (s2.startsWith("Content-Length: ")) {
+                        contentLength = Integer.parseInt(s2.split("Length: ")[1]);
                     }
                     counterr++;
                 }
             } catch (IOException e) {
-                plugin.getServer().getLogger().info("This is not an error and should not be reported.");
-                plugin.getServer().getLogger().info("Counting failed!");
+                main.getServer().getLogger().info("This is not an error and should not be reported.");
+                main.getServer().getLogger().info("Counting failed!");
             }
 
             String finalString = "";
@@ -77,14 +84,14 @@ public class AcceptedSocketConnection extends Thread{
 
             //This section is the response to the clients request, the web page:
             if (fileRequested.endsWith("/")) {
-                if (plugin.getConfig().getBoolean("UseHtml") && !plugin.getConfig().getBoolean("UsePHP")) {
+                if (main.getConfig().getBoolean("UseHtml") && !main.getConfig().getBoolean("UsePHP")) {
                     fileRequested += DEFAULT_FILE;
-                } else if (!plugin.getConfig().getBoolean("UseHtml") && plugin.getConfig().getBoolean("UsePHP")) {
+                } else if (!main.getConfig().getBoolean("UseHtml") && main.getConfig().getBoolean("UsePHP")) {
                     fileRequested += DEFAULT_FILE2;
                 }
             }
 
-            File file = new File(plugin.getDataFolder() + "/web/", fileRequested);
+            File file = new File(main.getDataFolder() + "/web/", fileRequested);
             int fileLength = (int) file.length();
             String content = getContentType(fileRequested);
 
@@ -104,16 +111,15 @@ public class AcceptedSocketConnection extends Thread{
                     dataOut.write(fileData, 0, fileLength);
                     dataOut.flush();
                 } catch (IOException e) {
-                    plugin.getServer().getLogger().info("This is not an error and should not be reported.");
-                    plugin.getServer().getLogger().info("Writing failed!");
+                    main.getServer().getLogger().info("This is not an error and should not be reported.");
+                    main.getServer().getLogger().info("Writing failed!");
                 }
             }
             out.close();
             in.close();
-            sock.close();
-
-        } catch (IOException e) {
-            if (plugin.getConfig().getBoolean("debug")) {
+            c.close();
+        } catch (Exception e) {
+            if (main.getConfig().getBoolean("debug")) {
                 e.printStackTrace();
             }
         }
@@ -126,8 +132,8 @@ public class AcceptedSocketConnection extends Thread{
             fileIn = new FileInputStream(file);
             fileIn.read(fileData);
         } catch (IOException e){
-            plugin.getServer().getLogger().info("This is not an error and should not be reported.");
-            plugin.getServer().getLogger().info("File: " + file + " Could not be found!");
+            main.getServer().getLogger().info("This is not an error and should not be reported.");
+            main.getServer().getLogger().info("File: " + file + " Could not be found!");
         }finally {
             if (fileIn != null)
                 fileIn.close();
@@ -151,5 +157,6 @@ public class AcceptedSocketConnection extends Thread{
         }
 
     }
-
 }
+
+
