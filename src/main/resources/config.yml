@@ -10,6 +10,7 @@ UseHtml: true
 UsePHP: false #PHP have not been tested but please test it for me.
 EnableSSL: false #This function is not used yet but will be.
 
-#Everything is case sensitive. Your cert have to be named "sslcert.jks"
+#Everything is case sensitive.
+SSLJKSName: "YourName" #Without the .jks
 SSLJKSPass: "Yourpass"
 SSLJKSKey: "Yourkey"
