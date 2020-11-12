@@ -23,12 +23,13 @@ public class SSLAcceptedSocketConnection extends Thread{
 
     Main main = JavaPlugin.getPlugin(Main.class);
 
-    String ksName = "plugins/WebPlugin/ssl/sslcert.jks";
-    char ksPass[] = main.getConfig().getString("SSLJKSPass").toString().toCharArray();
-    char ctPass[] = main.getConfig().getString("SSLJKSKey").toString().toCharArray();
+
     String DEFAULT_FILE = "index.html";
     String DEFAULT_FILE2 = "index.php";
     public void run(){
+        String ksName = "plugins/WebPlugin/ssl/" + main.getConfig().getString("SSLJKSName").toString() + ".jks";
+        char ksPass[] = main.getConfig().getString("SSLJKSPass").toString().toCharArray();
+        char ctPass[] = main.getConfig().getString("SSLJKSKey").toString().toCharArray();
         BufferedReader in = null; PrintWriter out = null; BufferedOutputStream dataOut = null;
         String fileRequested = null;
         try {
