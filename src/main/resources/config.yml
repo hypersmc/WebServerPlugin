@@ -9,3 +9,8 @@ debug: false
 UseHtml: true
 UsePHP: false #PHP have not been tested but please test it for me.
 EnableSSL: false #This function is not used yet but will be.
+
+SSL: #Everything is case sensitive.
+  SSLJKSName: "Yourname" #Without .jks
+  SSLJKSPass: "Yourpass"
+  SSLJKSKey: "Yourkey"
