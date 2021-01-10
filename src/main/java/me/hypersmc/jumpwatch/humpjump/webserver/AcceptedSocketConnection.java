@@ -1,6 +1,6 @@
 /*
  * ******************************************************
- *  *Copyright (c) 2020. Jesper Henriksen mhypers@gmail.com
+ *  *Copyright (c) 2021. Jesper Henriksen mhypers@gmail.com
  *
  *  * This file is part of WebServer project
  *  *
@@ -11,8 +11,12 @@
 
 package me.hypersmc.jumpwatch.humpjump.webserver;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.StringTokenizer;
 
@@ -22,7 +26,6 @@ public class AcceptedSocketConnection extends Thread{
     String DEFAULT_FILE = "index.html";
     String DEFAULT_FILE2 = "index.php";
     public AcceptedSocketConnection(Socket sock, Main plugin) {
-        // TODO Auto-generated constructor stub
         this.sock = sock;
         this.plugin = plugin;
 
@@ -43,10 +46,11 @@ public class AcceptedSocketConnection extends Thread{
             // we get file requested
             fileRequested = parse.nextToken().toLowerCase();
             String contentMimeType = "text/html";
+            ScriptEngineManager manager = new ScriptEngineManager();
+            ScriptEngine engine = manager.getEngineByExtension("php");
 
             String s;
             int counterr = 0, contentLength = 0;
-            //boolean gotEmptyLine = false;//TODO Remember why I did this line lol
             try {
                 while (!(s = in.readLine()).equals("")) {
                     if (counterr == 0 && s.equalsIgnoreCase(Main.closeConnection)) {
@@ -86,6 +90,7 @@ public class AcceptedSocketConnection extends Thread{
 
             if (method.equals("GET")) { // GET method so we return content
                 try {
+
                     byte[] fileData = readFileData(file, fileLength);
 
                     // send HTTP Headers
@@ -99,12 +104,19 @@ public class AcceptedSocketConnection extends Thread{
                     }
                     out.println(); // blank line between headers and content, very important !
                     out.flush(); // flush character output stream buffer
-
+                    if (plugin.getConfig().getBoolean("UsePHP")){
+                        engine.eval(in.readLine());
+                    }
                     dataOut.write(fileData, 0, fileLength);
                     dataOut.flush();
                 }catch (IOException e) {
                     plugin.getServer().getLogger().info("This is not an error and should not be reported.");
                     plugin.getServer().getLogger().info("Writing failed!");
+                } catch (ScriptException e) {
+                    if (plugin.getConfig().getBoolean("UsePHP")) {
+                        plugin.getServer().getLogger().info("This is an error and should be reported.");
+                        plugin.getServer().getLogger().info("PHP Writing failed!");
+                    }
                 }
             }
             out.close();
@@ -112,8 +124,9 @@ public class AcceptedSocketConnection extends Thread{
             sock.close();
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            if (plugin.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
         }
     }
     private byte[] readFileData(File file, int fileLength) throws IOException {

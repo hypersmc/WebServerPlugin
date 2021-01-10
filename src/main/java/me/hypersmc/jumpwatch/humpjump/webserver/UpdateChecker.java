@@ -1,6 +1,6 @@
 /*
  * ******************************************************
- *  *Copyright (c) 2020. Jesper Henriksen mhypers@gmail.com
+ *  *Copyright (c) 2021. Jesper Henriksen mhypers@gmail.com
  *
  *  * This file is part of WebServer project
  *  *

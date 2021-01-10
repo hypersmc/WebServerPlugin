@@ -9,7 +9,7 @@ debug: false
 #DO NOT HAVE BOTH HTML AND PHP AT TRUE AT ONCE!
 UseHtml: true
 UsePHP: false #PHP file loading is yet to work. Will be soon!
-EnableSSL: false #This function is not used yet but will be.
+EnableSSL: false #This can be used. but there is no guarantee that it will work.
 
 #Everything is case sensitive.
 SSLJKSName: "YourName" #Without the .jks

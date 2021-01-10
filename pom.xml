@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>WebServerPlugin</artifactId>
-    <version>0.8DEV</version>
+    <version>0.9</version>
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>

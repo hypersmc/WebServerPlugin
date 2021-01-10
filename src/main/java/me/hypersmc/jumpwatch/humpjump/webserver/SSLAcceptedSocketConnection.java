@@ -1,6 +1,6 @@
 /*
  * ******************************************************
- *  *Copyright (c) 2020. Jesper Henriksen mhypers@gmail.com
+ *  *Copyright (c) 2021. Jesper Henriksen mhypers@gmail.com
  *
  *  * This file is part of WebServer project
  *  *
@@ -68,7 +68,6 @@ public class SSLAcceptedSocketConnection{
 
             String s2;
             int counterr = 0, contentLength = 0;
-            //boolean gotEmptyLine = false;//TODO Remember why I did this line lol
             try {
                 while (!(s2 = in.readLine()).equals("")) {
                     if (counterr == 0 && s2.equalsIgnoreCase(Main.closeConnection)) {
