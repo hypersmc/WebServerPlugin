@@ -11,22 +11,18 @@
 
 package me.hypersmc.jumpwatch.humpjump.webserver;
 
-import javax.net.ssl.*;
 import java.io.*;
 import java.net.Socket;
-import java.security.KeyStore;
 import java.util.Date;
 import java.util.StringTokenizer;
 
 public class AcceptedSocketConnection extends Thread{
     Socket sock;
     Main plugin;
-    String ksName = plugin.getConfig().getString("SSL.SSLJKSName") + ".jks";
-    char ksPass[] = plugin.getConfig().getString("SSL.SSLJKSPass").toCharArray();
-    char ctPass[] = plugin.getConfig().getString("SSL.SSLJKSKey").toCharArray();
     String DEFAULT_FILE = "index.html";
     String DEFAULT_FILE2 = "index.php";
-    public AcceptedSocketConnection(Socket sock, Main plugin){
+    public AcceptedSocketConnection(Socket sock, Main plugin) {
+        // TODO Auto-generated constructor stub
         this.sock = sock;
         this.plugin = plugin;
 
@@ -65,13 +61,13 @@ public class AcceptedSocketConnection extends Thread{
                     }
                     counterr++;
                 }
-            } catch (IOException e) {
+            }catch (IOException e) {
                 plugin.getServer().getLogger().info("This is not an error and should not be reported.");
                 plugin.getServer().getLogger().info("Counting failed!");
             }
 
             String finalString = "";
-            for (int i = 0; i < contentLength; i++) {
+            for(int i = 0; i < contentLength; i++){
                 finalString += (char) in.read();
             }
 
@@ -79,7 +75,7 @@ public class AcceptedSocketConnection extends Thread{
             if (fileRequested.endsWith("/")) {
                 if (plugin.getConfig().getBoolean("UseHtml") && !plugin.getConfig().getBoolean("UsePHP")) {
                     fileRequested += DEFAULT_FILE;
-                } else if (!plugin.getConfig().getBoolean("UseHtml") && plugin.getConfig().getBoolean("UsePHP")) {
+                }else if (!plugin.getConfig().getBoolean("UseHtml") && plugin.getConfig().getBoolean("UsePHP")) {
                     fileRequested += DEFAULT_FILE2;
                 }
             }
@@ -98,12 +94,15 @@ public class AcceptedSocketConnection extends Thread{
                     out.println("Set-Cookie: Max-Age=0; Secure; HttpOnly");
                     out.println("Date: " + new Date());
                     out.println("Content-type: " + content);
+                    if (plugin.getConfig().getBoolean("UsePHP")){
+                        out.println("AddType application/x-httpd-php5 .php");
+                    }
                     out.println(); // blank line between headers and content, very important !
                     out.flush(); // flush character output stream buffer
 
                     dataOut.write(fileData, 0, fileLength);
                     dataOut.flush();
-                } catch (IOException e) {
+                }catch (IOException e) {
                     plugin.getServer().getLogger().info("This is not an error and should not be reported.");
                     plugin.getServer().getLogger().info("Writing failed!");
                 }
@@ -113,9 +112,8 @@ public class AcceptedSocketConnection extends Thread{
             sock.close();
 
         } catch (IOException e) {
-            if (plugin.getConfig().getBoolean("debug")) {
-                e.printStackTrace();
-            }
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
     private byte[] readFileData(File file, int fileLength) throws IOException {
@@ -144,8 +142,10 @@ public class AcceptedSocketConnection extends Thread{
             return "text/css";
         }else if (fileRequested.endsWith(".js")) {
             return "application/x-javascript";
-        }else if (fileRequested.endsWith(".svg")){
+        }else if (fileRequested.endsWith(".svg")) {
             return "image/svg+xml";
+        }else if (fileRequested.endsWith(".php")){
+            return "text/html";
         }else{
             return "text/plain";
         }
