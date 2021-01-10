@@ -13,9 +13,11 @@ package me.hypersmc.jumpwatch.humpjump.webserver;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.FileConfigurationOptions;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.FileUtil;
 
 import javax.net.ssl.SSLSocket;
 import java.io.BufferedWriter;
@@ -29,8 +31,6 @@ import java.util.logging.Logger;
 
 public class Main extends JavaPlugin implements Listener {
     public static String prefix = ChatColor.translateAlternateColorCodes('&', "&7[&3&lWebPlugin&7]&r");
-    public static Plugin plugin;
-    public FileConfiguration config = getConfig();
 
     //Werbserver things
     private boolean debug;
@@ -40,12 +40,53 @@ public class Main extends JavaPlugin implements Listener {
     private Thread acceptor;
     private boolean acceptorRunning;
     private ServerSocket ss;
-    Logger logger2 = this.getLogger();
+    private int version = 1;
     private synchronized boolean getAcceptorRunning() {
         return acceptorRunning;
     }
+    public void sethtmlfiles(){
+        saveResource("web/index.html", false);
+        saveResource("web/assets/css/font-awesome.min.css", false);
+        saveResource("web/assets/css/main.css", false);
+        saveResource("web/assets/fonts/FontAwesome.otf", false);
+        saveResource("web/assets/fonts/fontawesome-webfont.eot", false);
+        saveResource("web/assets/fonts/fontawesome-webfont.svg", false);
+        saveResource("web/assets/fonts/fontawesome-webfont.ttf", false);
+        saveResource("web/assets/fonts/fontawesome-webfont.woff", false);
+        saveResource("web/assets/fonts/fontawesome-webfont.woff2", false);
+        saveResource("web/assets/js/jquery.min.js", false);
+        saveResource("web/assets/js/jquery.poptrox.min.js", false);
+        saveResource("web/assets/js/main.js", false);
+        saveResource("web/assets/js/skel.min.js", false);
+        saveResource("web/images/bg.jpg", false);
+    }
     @Override
     public void onEnable() {
+        if (!(getConfig().contains("ConfigVersion", true))) {
+            this.getLogger().info("No config version found. Either config corrupt or never existed.");
+            this.getLogger().info("In case on existed we're gonna make a backup!");
+            File backup = new File(getDataFolder(), "config.yml");
+            this.getLogger().info("Making backup");
+            FileUtil.copy(backup, new File(backup + ".backup"));
+            backup.delete();
+            this.getLogger().info("CREATING");
+            getConfig().options().copyDefaults();
+            saveDefaultConfig();
+        }else if ((getConfig().contains("ConfigVersion")) && (getConfig().getInt("ConfigVersion") != version)) {
+            this.getLogger().info("Config is not right. You properly changed the ConfigVersion!");
+            File backup = new File(getDataFolder(), "config.yml");
+            this.getLogger().info("Making backup");
+            FileUtil.copy(backup, new File(backup + ".backup"));
+            backup.delete();
+            this.getLogger().info("Done!");
+            this.getLogger().info("config was not up to date.");
+            this.getLogger().info("RECREATING");
+            saveResource("config.yml", true);
+
+        }else {
+            this.getLogger().info("Config up to date!");
+
+        }
         getConfig().options().copyDefaults();
         saveDefaultConfig();
         Logger logger = this.getLogger();
@@ -66,7 +107,7 @@ public class Main extends JavaPlugin implements Listener {
             Bukkit.getPluginManager().disablePlugin(this);
         }else if (this.getConfig().getBoolean("UseHtml") || !this.getConfig().getBoolean("UsePHP")){
             if (!new File(getDataFolder() + "/web/", "index.html").exists()) {
-                saveResource("web/index.html", false);
+                sethtmlfiles();
             }
         }else if (!this.getConfig().getBoolean("UseHtml") || this.getConfig().getBoolean("UsePHP")){
             if (!new File(getDataFolder() + "/web/", "index.php").exists()) {
@@ -90,10 +131,20 @@ public class Main extends JavaPlugin implements Listener {
 
         }
         debug = getConfig().getBoolean("debug");
-        if (new File("plugins/WebPlugin/ssl/sslcert.jks").exists()){
-            logger.info("SSL Folder exist");
+        if (new File("plugins/WebPlugin/ssl/").exists()){
+            logger.info("SSL Folder exist!");
+        }else {
+            logger.info("SSL Folder doesn't exist!");
+            logger.info("Making!");
+            if (!new File(getDataFolder() + "/ssl/", "removeme.txt").exists()) {
+                saveResource("ssl/removeme.txt", false);
+            }
+
+        }
+        if (new File("plugins/WebPlugin/ssl/" + getConfig().getString("SSLJKSName") + ".jks").exists()){
+            logger.info("SSL File exist!");
         } else {
-            logger.info("SSL folder doesn't exist.");
+            logger.info("SSL File doesn't exist!");
         }
         if (getConfig().getBoolean("EnableWebserver")) {
             if (getConfig().isSet("listeningport")) {
@@ -121,29 +172,30 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
         acceptorRunning = true;
-        acceptor = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Socket sock;
-                SSLSocket sslSocket;
-                Bukkit.getServer().getLogger().info(ChatColor.AQUA + "accepting connections");
-                while (getAcceptorRunning()) {
-                    try {
-                        if (getConfig().getBoolean("EnableSSL")){
-                            new SSLAcceptedSocketConnection().start();
-                        }else {
+        if (!(getConfig().getBoolean("EnableSSL"))) {
+            acceptor = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Socket sock;
+                    SSLSocket sslSocket;
+                    Bukkit.getServer().getLogger().info(ChatColor.AQUA + "accepting connections");
+                    while (getAcceptorRunning()) {
+                        try {
                             sock = ss.accept();
                             new AcceptedSocketConnection(sock, m).start();
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
                     }
+                    Bukkit.getServer().getLogger().info(ChatColor.LIGHT_PURPLE + "Done accepting connections");
                 }
-                Bukkit.getServer().getLogger().info(ChatColor.LIGHT_PURPLE + "Done accepting connections");
-            }
-        });
-        acceptor.start();
+            });
+            acceptor.start();
+        }
+        if (getConfig().getBoolean("EnableSSL")){
+            new SSLAcceptedSocketConnection().run();
+        }
     }
 
     @Override
@@ -157,8 +209,6 @@ public class Main extends JavaPlugin implements Listener {
             out.close();
             sockCloser.close();
             Bukkit.getServer().getLogger().info(ChatColor.DARK_GREEN + "Closed listening web server successfully!");
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

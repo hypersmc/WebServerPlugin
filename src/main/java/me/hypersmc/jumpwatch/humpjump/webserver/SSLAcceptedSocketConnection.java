@@ -11,6 +11,7 @@
 
 package me.hypersmc.jumpwatch.humpjump.webserver;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.net.ssl.*;
@@ -19,20 +20,28 @@ import java.security.KeyStore;
 import java.util.Date;
 import java.util.StringTokenizer;
 
-public class SSLAcceptedSocketConnection extends Thread{
+public class SSLAcceptedSocketConnection{
 
     Main main = JavaPlugin.getPlugin(Main.class);
 
 
     String DEFAULT_FILE = "index.html";
     String DEFAULT_FILE2 = "index.php";
-    public void run(){
+
+    public void run() {
         String ksName = "plugins/WebPlugin/ssl/" + main.getConfig().getString("SSLJKSName").toString() + ".jks";
         char ksPass[] = main.getConfig().getString("SSLJKSPass").toString().toCharArray();
         char ctPass[] = main.getConfig().getString("SSLJKSKey").toString().toCharArray();
         BufferedReader in = null; PrintWriter out = null; BufferedOutputStream dataOut = null;
         String fileRequested = null;
         try {
+            main.getServer().getLogger().info("trying to start SSL");
+            if (!(new File("plugins/WebPlugin/ssl/" + main.getConfig().getString("SSLJKSName") + ".jks").exists())){
+                main.getLogger().info("SSL key not found!");
+                main.getLogger().info("Shutting down plugin to prevent damage!");
+                Bukkit.getScheduler().cancelTasks(main);
+                Bukkit.getPluginManager().disablePlugin(main);
+            }
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(new FileInputStream(ksName), ksPass);
             KeyManagerFactory kmf =
@@ -41,8 +50,10 @@ public class SSLAcceptedSocketConnection extends Thread{
             SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(kmf.getKeyManagers(), null, null);
             SSLServerSocketFactory ssf = sc.getServerSocketFactory();
-            SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(main.getConfig().getInt("listeningport"));
+            SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(main.getConfig().getInt("listeningportssl"));
             SSLSocket c = (SSLSocket) s.accept();
+            main.getServer().getLogger().info("SSL websocket started");
+
 
             in = new BufferedReader(new InputStreamReader(c.getInputStream()));
             out = new PrintWriter(c.getOutputStream());
@@ -51,7 +62,6 @@ public class SSLAcceptedSocketConnection extends Thread{
             String input = in.readLine();
             // we parse the request with a string tokenizer
             StringTokenizer parse = new StringTokenizer(input);
-            String method = parse.nextToken().toUpperCase(); // we get the HTTP method of the client
             // we get file requested
             fileRequested = parse.nextToken().toLowerCase();
             String contentMimeType = "text/html";
@@ -96,25 +106,22 @@ public class SSLAcceptedSocketConnection extends Thread{
             int fileLength = (int) file.length();
             String content = getContentType(fileRequested);
 
-            if (method.equals("GET")) { // GET method so we return content
-                try {
-                    byte[] fileData = readFileData(file, fileLength);
+            try {
+                byte[] fileData = readFileData(file, fileLength);
 
-                    // send HTTP Headers
-                    out.write("HTTP/1.1 200 OK");
-                    out.write("Server: Java HTTP Server from SSaurel : 1.0");
-                    out.println("Set-Cookie: Max-Age=0; Secure; HttpOnly");
-                    out.println("Date: " + new Date());
-                    out.println("Content-type: " + content);
-                    out.println(); // blank line between headers and content, very important !
-                    out.flush(); // flush character output stream buffer
+                // send HTTPS Headers
+                out.write("HTTP/1.1 200 OK");
+                out.write("Server: Java HTTP Server from SSaurel : 1.0");
+                out.write("HTTP/1.1 200 OK");
+                out.println("Content-type: " + content);
+                out.println(); // blank line between headers and content, very important !
+                out.flush(); // flush character output stream buffer
 
-                    dataOut.write(fileData, 0, fileLength);
-                    dataOut.flush();
-                } catch (IOException e) {
-                    main.getServer().getLogger().info("This is not an error and should not be reported.");
-                    main.getServer().getLogger().info("Writing failed!");
-                }
+                dataOut.write(fileData, 0, fileLength);
+                dataOut.flush();
+            } catch (IOException e) {
+                main.getServer().getLogger().info("This is not an error and should not be reported.");
+                main.getServer().getLogger().info("Writing failed!");
             }
             out.close();
             in.close();
@@ -125,6 +132,7 @@ public class SSLAcceptedSocketConnection extends Thread{
             }
         }
     }
+
     private byte[] readFileData(File file, int fileLength) throws IOException {
         FileInputStream fileIn = null;
         byte[] fileData = new byte[fileLength];
