@@ -133,8 +133,8 @@ public class Main extends JavaPlugin implements Listener {
         }else {
             logger.info("SSL Folder doesn't exist!");
             logger.info("Making!");
-            if (!new File(getDataFolder() + "/ssl/", "removeme.txt").exists()) {
-                saveResource("ssl/removeme.txt", false);
+            if (!new File(getDataFolder() + "/SSL/", "removeme.txt").exists()) {
+                saveResource("SSL/removeme.txt", false);
             }
 
         }
