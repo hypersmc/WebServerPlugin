@@ -69,6 +69,13 @@ public class MainCommand implements CommandExecutor {
                     main.reloadConfig();
                     sender.sendMessage(main.prefix + " Configuration file reloaded.");
                     return true;
+                }else if (args[0].equalsIgnoreCase("dev")) {
+                    sender.sendMessage(main.prefix + " This plugin is developed by " + main.getDescription().getAuthors());
+                    sender.sendMessage(main.prefix + " Your running version: " + ChatColor.RED + main.getDescription().getVersion() + ChatColor.RESET + " and the newest version is: " + main.ver);
+                    return true;
+                }else if (args[0].equalsIgnoreCase("ver")) {
+                    sender.sendMessage(main.prefix + " Your running version: " + ChatColor.RED + main.getDescription().getVersion() + ChatColor.RESET + " and the newest version is: " + main.ver);
+                    return true;
                 }else if (args.length < 323232323) {
                     main.getServer().getIp();
                     if (main.getServer().getIp().isEmpty()) {

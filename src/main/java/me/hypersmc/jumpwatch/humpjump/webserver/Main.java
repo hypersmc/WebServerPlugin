@@ -36,6 +36,7 @@ public class Main extends JavaPlugin implements Listener {
     private Thread acceptor;
     private boolean acceptorRunning;
     private ServerSocket ss;
+    public static String ver;
     private int version = 1;
     private synchronized boolean getAcceptorRunning() {
         return acceptorRunning;
@@ -94,6 +95,7 @@ public class Main extends JavaPlugin implements Listener {
             } else {
                 logger.info("There is a new update available.");
                 logger.info("Your version is " + this.getDescription().getVersion() + " newest version " + version);
+                ver = version;
             }
         });
         this.getCommand("WebP").setExecutor(new MainCommand());
