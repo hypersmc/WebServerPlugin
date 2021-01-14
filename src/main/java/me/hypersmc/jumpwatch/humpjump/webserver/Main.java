@@ -91,6 +91,7 @@ public class Main extends JavaPlugin implements Listener {
         new UpdateChecker(this, 85640).getVersion(version -> {
             if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
                 logger.info("There is not a new update available.");
+                ver = version;
 
             } else {
                 logger.info("There is a new update available.");

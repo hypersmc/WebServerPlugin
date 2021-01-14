@@ -68,19 +68,23 @@ public class MainCommand implements CommandExecutor {
                     }
                     return true;
 
-                }else if (args[0].equalsIgnoreCase("reload")) {
+                }
+                if (args[0].equalsIgnoreCase("reload")) {
                     main.reloadConfig();
                     sender.sendMessage(main.prefix + " Configuration file reloaded.");
                     return true;
-                }else if (args[0].equalsIgnoreCase("reset")) {
+                }
+                if (args[0].equalsIgnoreCase("reset")) {
                     sender.sendMessage(main.prefix + " Starting config reset!");
                     resetconfig(((Player) sender).getPlayer());
                     return true;
-                }else if (args[0].equalsIgnoreCase("dev")) {
+                }
+                if (args[0].equalsIgnoreCase("dev")) {
                     sender.sendMessage(main.prefix + " This plugin is developed by " + main.getDescription().getAuthors());
                     sender.sendMessage(main.prefix + " Your running version: " + ChatColor.RED + main.getDescription().getVersion());
                     return true;
-                }else if (args[0].equalsIgnoreCase("help")) {
+                }
+                if (args[0].equalsIgnoreCase("help")) {
                     sender.sendMessage(main.prefix + " Commands: ");
                     sender.sendMessage(main.prefix + " /webp reload reloads the plugin's configuration (NOT RESET)");
                     sender.sendMessage(main.prefix + " /webp dev gets who developed this plugin and plugin version");
@@ -88,34 +92,21 @@ public class MainCommand implements CommandExecutor {
                     sender.sendMessage(main.prefix + " /webp help to get this again.");
                     sender.sendMessage(main.prefix + " /webp reset (WARNING This command WILL reset your config! Backup will be made)");
                     return true;
-                }else if (args[0].equalsIgnoreCase("ver")) {
-                    sender.sendMessage(main.prefix + " Your running version: " + ChatColor.RED + main.getDescription().getVersion() + ChatColor.RESET + " and the newest version is: " + main.ver);
-                    return true;
-                }else if (args.length < 323232323) {
-                    main.getServer().getIp();
-                    if (main.getServer().getIp().isEmpty()) {
-                        sender.sendMessage(main.prefix + ChatColor.RED + " MISSING IP FROM server.properties!");
-                        if (main.getConfig().getBoolean("EnableSSL")) {
-                            sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: https://localhost" + ":" + main.getConfig().getInt("listeningport") + "/");
-
-                        }else {
-                            sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: http://localhost" + ":" + main.getConfig().getInt("listeningport") + "/");
-                        }
-                    }else {
-                        if (main.getConfig().getBoolean("EnableSSL")) {
-                            sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: https://" + Bukkit.getServer().getIp() + ":" + main.getConfig().getInt("listeningport") + "/");
-                        }else {
-                            sender.sendMessage(main.prefix + " WebServer info: " + "\n" + "Link: http://" + Bukkit.getServer().getIp() + ":" + main.getConfig().getInt("listeningport") + "/");
-
-                        }
-                    }
+                }
+                if (args[0].equalsIgnoreCase("ver")) {
+                    sender.sendMessage(main.prefix + " Your running version: " + ChatColor.RED + main.getDescription().getVersion() + ChatColor.RESET + getver());
                     return true;
                 }
-
-
             }
         }
         return true;
+    }
+    public String getver(){
+        if (main.getDescription().getVersion().equals(main.ver)) {
+            return " and your running the newest version!";
+        }else {
+            return " and the newest version is: " + ChatColor.RED + main.ver;
+        }
     }
     public void resetconfig(Player sender){
         sender.sendMessage("WARNING You are now resetting your config.yml");
@@ -125,7 +116,7 @@ public class MainCommand implements CommandExecutor {
         FileUtil.copy(backup, new File(backup + ".backup"));
         backup.delete();
         sender.sendMessage("Done!");
-        sender.sendMessage("config was not up to date.");
+        sender.sendMessage("config was set to reset!.");
         sender.sendMessage("RECREATING");
         main.saveResource("config.yml", true);
     }
