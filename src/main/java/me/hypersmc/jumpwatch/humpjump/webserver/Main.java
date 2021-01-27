@@ -37,7 +37,7 @@ public class Main extends JavaPlugin implements Listener {
     private boolean acceptorRunning;
     private ServerSocket ss;
     public static String ver;
-    private int version = 1;
+    private int version = 2;
     private synchronized boolean getAcceptorRunning() {
         return acceptorRunning;
     }
@@ -70,7 +70,7 @@ public class Main extends JavaPlugin implements Listener {
             getConfig().options().copyDefaults();
             saveDefaultConfig();
         }else if ((getConfig().contains("ConfigVersion")) && (getConfig().getInt("ConfigVersion") != version)) {
-            this.getLogger().warning("Config is not right. You properly changed the ConfigVersion!");
+            this.getLogger().warning("Config is not right. Config was missing an update or you changed it!");
             this.getLogger().info("An backup will be made.");
             File backup = new File(getDataFolder(), "config.yml");
             this.getLogger().info("Making backup");
@@ -91,7 +91,7 @@ public class Main extends JavaPlugin implements Listener {
         new UpdateChecker(this, 85640).getVersion(version -> {
             if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
                 logger.info("There is not a new update available.");
-                ver = version;
+                ver  = version;
 
             } else {
                 logger.info("There is a new update available.");

@@ -2,7 +2,7 @@
 listeningport: 25567
 listeningportssl: 25568
 EnableWebserver: true #This should always be on.
-
+ServerIP: localhost
 #Only enable if I ask you to.
 debug: false
 
@@ -20,4 +20,4 @@ SSLJKSKey: "Yourkey"
 ###Be sure you do it right otherwise it wont work!
 
 #DO NOT IN ANY WAY EDIT THIS
-ConfigVersion: 1
+ConfigVersion: 2
