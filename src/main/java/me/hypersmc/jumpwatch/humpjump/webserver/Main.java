@@ -10,6 +10,7 @@
  */
 package me.hypersmc.jumpwatch.humpjump.webserver;
 
+import me.hypersmc.jumpwatch.humpjump.webserver.PHP.PhPGetter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
@@ -17,10 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.FileUtil;
 
 import javax.net.ssl.SSLSocket;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Logger;
@@ -59,6 +57,9 @@ public class Main extends JavaPlugin implements Listener {
     }
     @Override
     public void onEnable() {
+        /*
+        Checking config version and makes sure it matches up to default version.
+         */
         if (!(getConfig().contains("ConfigVersion", true))) {
             this.getLogger().warning("No config version found. Either config corrupt or never existed.");
             this.getLogger().info("In case on existed backup is being made.");
@@ -88,6 +89,9 @@ public class Main extends JavaPlugin implements Listener {
         getConfig().options().copyDefaults();
         saveDefaultConfig();
         Logger logger = this.getLogger();
+        /*
+        Checking if there is any plugin update available.
+         */
         new UpdateChecker(this, 85640).getVersion(version -> {
             if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
                 logger.info("There is not a new update available.");
@@ -99,8 +103,13 @@ public class Main extends JavaPlugin implements Listener {
                 ver = version;
             }
         });
+        /*
+        Adds plugin command.
+         */
         this.getCommand("WebP").setExecutor(new MainCommand());
-
+        /*
+        Checking config values, and make sure that some that shouldn't be enabled aren't on startup.
+         */
         if (this.getConfig().getBoolean("UseHtml") && this.getConfig().getBoolean("UsePHP")) {
             logger.warning("Cannot have both HTML and PHP enabled at once! disabling!");
             Bukkit.getScheduler().cancelTasks(this);
@@ -146,18 +155,23 @@ public class Main extends JavaPlugin implements Listener {
         } else {
             logger.info("SSL File doesn't exist!");
         }
-        if (getConfig().getBoolean("EnableWebserver")) {
-            if (getConfig().isSet("listeningport")) {
-                logger.info(ChatColor.GRAY + "Found a listening port!");
-                try {
-                    listeningport = getConfig().getInt("listeningport");
-                    ss = new ServerSocket(listeningport);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                if (getConfig().contains("listeningport")) {
-                    logger.warning(ChatColor.YELLOW + "Listening port for WebServer NOT FOUND! Using internal default value!");
+        /*
+        When all checks matches up we can now start the actual webserver.
+        We make sure to check if ssl is on or not.
+         */
+
+        if (getConfig().getBoolean("UsePHP")){
+            if (new File("plugins/WebPlugin/phpcore").exists()) {
+                logger.info("php files exist.");
+            }else {
+                logger.info("started downloading phpcore");
+                PhPGetter.PhPGetter();
+            }
+        }
+        if (getConfig().getBoolean("UseHtml")) {
+            if (getConfig().getBoolean("EnableWebserver")) {
+                if (getConfig().isSet("listeningport")) {
+                    logger.info(ChatColor.GRAY + "Found a listening port!");
                     try {
                         listeningport = getConfig().getInt("listeningport");
                         ss = new ServerSocket(listeningport);
@@ -165,36 +179,48 @@ public class Main extends JavaPlugin implements Listener {
                         e.printStackTrace();
                     }
                 } else {
-                    logger.warning(ChatColor.DARK_RED + "Plugin disabled! NO VALUE WAS FOUND FOR LISTENING PORT!");
-                    Bukkit.getPluginManager().disablePlugin(this);
-                    return;
-                }
-            }
-        }
-        acceptorRunning = true;
-        if (!(getConfig().getBoolean("EnableSSL"))) {
-            acceptor = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Socket sock;
-                    SSLSocket sslSocket;
-                    logger.info(ChatColor.AQUA + "accepting connections");
-                    while (getAcceptorRunning()) {
+                    if (getConfig().contains("listeningport")) {
+                        logger.warning(ChatColor.YELLOW + "Listening port for WebServer NOT FOUND! Using internal default value!");
                         try {
-                            sock = ss.accept();
-                            new AcceptedSocketConnection(sock, m).start();
-
+                            listeningport = getConfig().getInt("listeningport");
+                            ss = new ServerSocket(listeningport);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                    } else {
+                        logger.warning(ChatColor.DARK_RED + "Plugin disabled! NO VALUE WAS FOUND FOR LISTENING PORT!");
+                        Bukkit.getPluginManager().disablePlugin(this);
+                        return;
                     }
-                    logger.info(ChatColor.LIGHT_PURPLE + "Done accepting connections");
                 }
-            });
-            acceptor.start();
-        }
-        if (getConfig().getBoolean("EnableSSL")){
-            new SSLAcceptedSocketConnection().run();
+            }
+            acceptorRunning = true;
+            if (!(getConfig().getBoolean("EnableSSL"))) {
+                acceptor = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Socket sock;
+                        SSLSocket sslSocket;
+                        logger.info(ChatColor.AQUA + "accepting connections");
+                        while (getAcceptorRunning()) {
+                            try {
+                                sock = ss.accept();
+                                new AcceptedSocketConnection(sock, m).start();
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        logger.info(ChatColor.LIGHT_PURPLE + "Done accepting connections");
+                    }
+                });
+                acceptor.start();
+            }
+            if (getConfig().getBoolean("EnableSSL")) {
+                new SSLAcceptedSocketConnection().run();
+            }
+        }else if (getConfig().getBoolean("UsePHP")){
+            startphpcore();
         }
     }
 
@@ -218,6 +244,20 @@ public class Main extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
     }
-
+    private  void startphpcore(){
+        try {
+            String command = this.getDataFolder() + "/phpcore/php.exe -s " + this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("listeningport");
+            Process child = Runtime.getRuntime().exec(command);
+            OutputStream out = child.getOutputStream();
+            out.flush();
+            out.close();
+            this.getLogger().info("Started PHP webserver on:");
+            this.getLogger().info(this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("listeningport"));
+        } catch (IOException e) {
+            if (this.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }

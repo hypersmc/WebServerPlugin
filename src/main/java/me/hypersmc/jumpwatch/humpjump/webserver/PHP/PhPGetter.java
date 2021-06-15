@@ -15,6 +15,7 @@ import me.hypersmc.jumpwatch.humpjump.webserver.Main;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -26,7 +27,11 @@ public class PhPGetter {
         Main main = JavaPlugin.getPlugin(Main.class);
         String url = "https://windows.php.net//downloads/releases/php-8.0.7-nts-Win32-vs16-x64.zip";
         try {
-            downloadphp(url, main.getDataFolder() + "tempfiles/");
+            File dir = new File(main.getDataFolder() + "/tempfiles/");
+            dir.mkdirs();
+            downloadphp(url, main.getDataFolder() + "/tempfiles/" + "php-8.0.7-nts-Win32-vs16-x64.zip");
+            main.getLogger().info("File downloaded!");
+            PhPUnzipper.PhPUnzipper();
         } catch (IOException e) {
             if (main.getConfig().getBoolean("debug")) {
                 e.printStackTrace();
