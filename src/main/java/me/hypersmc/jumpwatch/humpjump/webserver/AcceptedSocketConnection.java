@@ -99,24 +99,15 @@ public class AcceptedSocketConnection extends Thread{
                     out.println("Set-Cookie: Max-Age=0; Secure; HttpOnly");
                     out.println("Date: " + new Date());
                     out.println("Content-type: " + content);
-                    if (plugin.getConfig().getBoolean("UsePHP")){
-                        out.println("AddType application/x-httpd-php5 .php");
-                    }
+
                     out.println(); // blank line between headers and content, very important !
                     out.flush(); // flush character output stream buffer
-                    if (plugin.getConfig().getBoolean("UsePHP")){
-                        engine.eval(in.readLine());
-                    }
+
                     dataOut.write(fileData, 0, fileLength);
                     dataOut.flush();
                 }catch (IOException e) {
                     plugin.getServer().getLogger().info("This is not an error and should not be reported.");
                     plugin.getServer().getLogger().info("Writing failed!");
-                } catch (ScriptException e) {
-                    if (plugin.getConfig().getBoolean("UsePHP")) {
-                        plugin.getServer().getLogger().info("This is an error and should be reported.");
-                        plugin.getServer().getLogger().info("PHP Writing failed!");
-                    }
                 }
             }
             out.close();

@@ -37,7 +37,7 @@ public class Main extends JavaPlugin implements Listener {
     private boolean acceptorRunning;
     private ServerSocket ss;
     public static String ver;
-    private int version = 2;
+    private int version = 3;
     private synchronized boolean getAcceptorRunning() {
         return acceptorRunning;
     }
