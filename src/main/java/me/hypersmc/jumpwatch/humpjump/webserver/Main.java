@@ -15,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.FileUtil;
 
 import javax.net.ssl.SSLSocket;
@@ -56,8 +57,19 @@ public class Main extends JavaPlugin implements Listener {
         saveResource("web/assets/js/skel.min.js", false);
         saveResource("web/images/bg.jpg", false);
     }
+    private static String OS = System.getProperty("os.name").toLowerCase();
+    public static boolean isWindows() {
+        return (OS.indexOf("win") >= 0);
+    }
+    public static boolean isUnix() {
+        return (OS.indexOf("nix") >= 0
+                || OS.indexOf("nux") >= 0
+                || OS.indexOf("aix") > 0);
+    }
+
     @Override
     public void onEnable() {
+        this.getLogger().info("Your current OS name: " + OS);
         /*
         Checking config version and makes sure it matches up to default version.
          */
@@ -221,7 +233,7 @@ public class Main extends JavaPlugin implements Listener {
                 new SSLAcceptedSocketConnection().run();
             }
         }else if (getConfig().getBoolean("UsePHP")){
-            startphpcore();
+            runweb(this);
         }
     }
 
@@ -246,44 +258,197 @@ public class Main extends JavaPlugin implements Listener {
                 e.printStackTrace();
             }
         }
+        stopphpcore();
     }
-    private  void startphpcore(){
-        this.getLogger().info("checking file permissions");
-        FilePermissions();
-        /*try {
-            this.getLogger().info("Making sure that right ip and port is set.");
-            changeProperty(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "http { server { listen", this.getConfig().getString("listeningport"));
-            changeProperty(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "http { server { server_name", this.getConfig().getString("ServerIP"));
-            this.getLogger().info("Success!");
-        } catch (IOException e) {
-            this.getLogger().info("Failed to set port and ip. Please enable debug mode.");
-            if (this.getConfig().getBoolean("debug")) {
-                e.printStackTrace();
-            }
-        }*/
-
+    public void stopphpcore(){
         try {
-            String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe";
-            Process child = Runtime.getRuntime().exec(command);
-            OutputStream out = child.getOutputStream();
+            String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe -s quit -p " + getDataFolder() + "/phpcore/nginx-1.20.1/";
+            String line;
+            if (isWindows()) {
+                Process p = Runtime.getRuntime().exec(command);
+                if (this.getConfig().getBoolean("debug")) {
+                    BufferedReader bri = new BufferedReader
+                            (new InputStreamReader(p.getInputStream()));
+                    BufferedReader bre = new BufferedReader
+                            (new InputStreamReader(p.getErrorStream()));
+                    while ((line = bri.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                    bri.close();
+                    while ((line = bre.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                    bre.close();
+                    p.waitFor();
+                    System.out.println("Done.");
+                }
+            }else if (isUnix()) {
+                this.getLogger().info("Your os is: "+OS);
+                this.getLogger().info("Sorry but for now only Windows is supported on php. Linux is comming soon!");
 
-            this.getLogger().info("Started PHP webserver on:");
-            this.getLogger().info(this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("listeningport"));
-        } catch (IOException e) {
+            }
+        } catch (IOException | InterruptedException e) {
             if (this.getConfig().getBoolean("debug")) {
                 e.printStackTrace();
             }
         }
     }
-    public static void changeProperty(String filename, String key, String value) throws IOException {
+    public void reloadphpcore(){
+        try {
+            String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe -s reload -p " + getDataFolder() + "/phpcore/nginx-1.20.1/";
+            String line;
+            if (isWindows()) {
+                Process p = Runtime.getRuntime().exec(command);
+                if (this.getConfig().getBoolean("debug")) {
+                    BufferedReader bri = new BufferedReader
+                            (new InputStreamReader(p.getInputStream()));
+                    BufferedReader bre = new BufferedReader
+                            (new InputStreamReader(p.getErrorStream()));
+                    while ((line = bri.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                    bri.close();
+                    while ((line = bre.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                    bre.close();
+                    p.waitFor();
+                    System.out.println("Done.");
+                }
+            }else if (isUnix()) {
+                this.getLogger().info("Your os is: "+OS);
+                this.getLogger().info("Sorry but for now only Windows is supported on php. Linux is comming soon!");
+
+            }
+        } catch (IOException | InterruptedException e) {
+            if (this.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void startphpcore(){
+        this.getLogger().info("checking file permissions");
+        FilePermissions();
+        this.getLogger().info("Making sure that right ip and port is set.");
+        Changeconf(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "localhost", this.getConfig().getString("listeningport") + "");
+        Changeconf(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "80", this.getConfig().getString("ServerIP") + "");
+        this.getLogger().info("Success!");
+
+        try {
+
+            String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe -p " + getDataFolder() + "/phpcore/nginx-1.20.1/";
+            String line;
+
+            if (isWindows()) {
+                System.out.println("found windows.");
+                Process p = Runtime.getRuntime().exec(command);
+                if (this.getConfig().getBoolean("debug")) {
+                    BufferedReader bri = new BufferedReader
+                            (new InputStreamReader(p.getInputStream()));
+                    BufferedReader bre = new BufferedReader
+                            (new InputStreamReader(p.getErrorStream()));
+                    while ((line = bri.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                    bri.close();
+                    while ((line = bre.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                    bre.close();
+                    p.waitFor();
+                    System.out.println("Done.");
+                }
+            } else if (isUnix()) {
+                this.getLogger().info("Your os is: "+OS);
+                this.getLogger().info("Sorry but for now only Windows is supported on php. Linux is comming soon!");
+
+            }
+
+
+
+
+            this.getLogger().info("Started PHP webserver on:");
+            this.getLogger().info(this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("listeningport"));
+        } catch (IOException | InterruptedException e) {
+            if (this.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void runweb(JavaPlugin instance) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                startphpcore();
+            }
+
+        }.runTaskAsynchronously(instance);
+    }
+
+    static void Changeconf(String filePath, String oldString, String newString)
+    {
+        File fileToBeModified = new File(filePath);
+
+        String oldContent = "";
+
+        BufferedReader reader = null;
+
+        FileWriter writer = null;
+
+        try
+        {
+            reader = new BufferedReader(new FileReader(fileToBeModified));
+
+            //Reading all the lines of input text file into oldContent
+
+            String line = reader.readLine();
+
+            while (line != null)
+            {
+                oldContent = oldContent + line + System.lineSeparator();
+
+                line = reader.readLine();
+            }
+
+            //Replacing oldString with newString in the oldContent
+
+            String newContent = oldContent.replaceAll(oldString, newString);
+
+            //Rewriting the input text file with newContent
+
+            writer = new FileWriter(fileToBeModified);
+
+            writer.write(newContent);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                //Closing the resources
+
+                reader.close();
+
+                writer.close();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+    /*public static void changeProperty(String filename, String key, String value) throws IOException {
         final File tmpFile = new File(filename + ".tmp");
         final File file = new File(filename);
         PrintWriter pw = new PrintWriter(tmpFile);
         BufferedReader br = new BufferedReader(new FileReader(file));
         boolean found = false;
-        final String toAdd = key + '=' + value;
+        final String toAdd = key + ' ' + value;
         for (String line; (line = br.readLine()) != null; ) {
-            if (line.startsWith(key + '=')) {
+            if (line.startsWith(key + ' ')) {
                 line = toAdd;
                 found = true;
             }
@@ -294,7 +459,7 @@ public class Main extends JavaPlugin implements Listener {
         br.close();
         pw.close();
         tmpFile.renameTo(file);
-    }
+    }*/
 
     private void FilePermissions(){
         File nginx = new File(this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe");

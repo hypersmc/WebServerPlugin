@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>WebServerPlugin</artifactId>
-    <version>0.9.21</version>
+    <version>1.3b</version>
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
@@ -33,6 +33,30 @@
                     <source>8</source>
                     <target>8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-files-on-build</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>C:\Users\JumpWatch\Desktop\testserver\plugins</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/target</directory>
+                                    <include>${project.build.finalName}.jar</include> // your jar name
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <resources>

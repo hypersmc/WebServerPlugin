@@ -78,6 +78,24 @@ public class MainCommand implements CommandExecutor {
                         return true;
                     }
                 }
+                if (args[0].equalsIgnoreCase("stopweb")) {
+                    if (sender.hasPermission("web.stop") || sender.hasPermission("web.*")) {
+                        main.stopphpcore();
+                        sender.sendMessage(main.prefix + " Stopped webserver (PHP)");
+                    }
+                }
+                if (args[0].equalsIgnoreCase("reloadweb")) {
+                    if (sender.hasPermission("web.reload") || sender.hasPermission("web.*")) {
+                        main.reloadphpcore();
+                        sender.sendMessage(main.prefix + " Reloaded webserver (PHP)");
+                    }
+                }
+                if (args[0].equalsIgnoreCase("startweb")) {
+                    if (sender.hasPermission("web.start") || sender.hasPermission("web.*")) {
+                        main.runweb(main);
+                        sender.sendMessage(main.prefix + " Started webserver (PHP)");
+                    }
+                }
                 if (args[0].equalsIgnoreCase("reset")) {
                     if (sender.hasPermission("web.reset") || sender.hasPermission("web.*")) {
                         sender.sendMessage(main.prefix + " Starting config reset!");
