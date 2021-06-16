@@ -2,13 +2,13 @@
 listeningport: 25567
 listeningportssl: 25568
 EnableWebserver: true #This should always be on.
-ServerIP: localhost
+ServerIP: localhost #this is used for php ip.
 #Only enable if I ask you to.
 debug: false
 
 #DO NOT HAVE BOTH HTML AND PHP AT TRUE AT ONCE!
 UseHtml: true
-UsePHP: false #PHP file loading is yet to work. Will be soon!
+UsePHP: false
 
 EnableSSL: false #This can be used. but there is no guarantee that it will work.
 

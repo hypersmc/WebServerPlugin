@@ -22,7 +22,7 @@ public class PhPUnzipper {
     private static final int BUFFER_SIZE = 4096;
     public static void PhPUnzipper(){
         Main main = JavaPlugin.getPlugin(Main.class);
-        String zipFilePath = main.getDataFolder() + "/tempfiles/php-8.0.7-nts-Win32-vs16-x64.zip";
+        String zipFilePath = main.getDataFolder() + "/tempfiles/nginx.zip";
 
         String destDir = main.getDataFolder() + "/phpcore/";
         try {

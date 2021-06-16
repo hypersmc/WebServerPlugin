@@ -21,6 +21,7 @@ import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class Main extends JavaPlugin implements Listener {
@@ -226,31 +227,46 @@ public class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        acceptorRunning = false;
-        Socket sockCloser;
-        try {
-            sockCloser = new Socket("localhost", listeningport);
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(sockCloser.getOutputStream()));
-            out.write(Main.closeConnection);
-            out.close();
-            sockCloser.close();
-            getLogger().info(ChatColor.DARK_GREEN + "Closed listening web server successfully!");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            ss.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (getConfig().getBoolean("UseHtml")) {
+            acceptorRunning = false;
+            Socket sockCloser;
+            try {
+                sockCloser = new Socket("localhost", listeningport);
+                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(sockCloser.getOutputStream()));
+                out.write(Main.closeConnection);
+                out.close();
+                sockCloser.close();
+                getLogger().info(ChatColor.DARK_GREEN + "Closed listening web server successfully!");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                ss.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
     private  void startphpcore(){
+        this.getLogger().info("checking file permissions");
+        FilePermissions();
+        /*try {
+            this.getLogger().info("Making sure that right ip and port is set.");
+            changeProperty(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "http { server { listen", this.getConfig().getString("listeningport"));
+            changeProperty(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "http { server { server_name", this.getConfig().getString("ServerIP"));
+            this.getLogger().info("Success!");
+        } catch (IOException e) {
+            this.getLogger().info("Failed to set port and ip. Please enable debug mode.");
+            if (this.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }*/
+
         try {
-            String command = this.getDataFolder() + "/phpcore/php.exe -s " + this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("listeningport");
+            String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe";
             Process child = Runtime.getRuntime().exec(command);
             OutputStream out = child.getOutputStream();
-            out.flush();
-            out.close();
+
             this.getLogger().info("Started PHP webserver on:");
             this.getLogger().info(this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("listeningport"));
         } catch (IOException e) {
@@ -259,5 +275,47 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
     }
+    public static void changeProperty(String filename, String key, String value) throws IOException {
+        final File tmpFile = new File(filename + ".tmp");
+        final File file = new File(filename);
+        PrintWriter pw = new PrintWriter(tmpFile);
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        boolean found = false;
+        final String toAdd = key + '=' + value;
+        for (String line; (line = br.readLine()) != null; ) {
+            if (line.startsWith(key + '=')) {
+                line = toAdd;
+                found = true;
+            }
+            pw.println(line);
+        }
+        if (!found)
+            pw.println(toAdd);
+        br.close();
+        pw.close();
+        tmpFile.renameTo(file);
+    }
 
+    private void FilePermissions(){
+        File nginx = new File(this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe");
+        File nginxfolder = new File(this.getDataFolder() + "/phpcore/nginx-1.20.1/");
+        File corefolder = new File(this.getDataFolder() + "/phpcore/");
+        try {
+            nginx.setExecutable(true, false);
+            nginx.setReadable(true, false);
+            nginx.setWritable(true, false);
+            nginxfolder.setExecutable(true, false);
+            nginxfolder.setReadable(true, false);
+            nginxfolder.setWritable(true, false);
+            corefolder.setExecutable(true, false);
+            corefolder.setReadable(true, false);
+            corefolder.setWritable(true, false);
+            this.getLogger().info("File permission check success!");
+        } catch (Exception e) {
+            this.getLogger().info("Failed to check file permission. Please enable debug mode.");
+            if (this.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

@@ -25,11 +25,11 @@ public class PhPGetter {
 
     public static void PhPGetter() {
         Main main = JavaPlugin.getPlugin(Main.class);
-        String url = "https://windows.php.net//downloads/releases/php-8.0.7-nts-Win32-vs16-x64.zip";
+        String url = "http://nginx.org/download/nginx-1.20.1.zip";
         try {
             File dir = new File(main.getDataFolder() + "/tempfiles/");
             dir.mkdirs();
-            downloadphp(url, main.getDataFolder() + "/tempfiles/" + "php-8.0.7-nts-Win32-vs16-x64.zip");
+            downloadphp(url, main.getDataFolder() + "/tempfiles/" + "nginx.zip");
             main.getLogger().info("File downloaded!");
             PhPUnzipper.PhPUnzipper();
         } catch (IOException e) {
