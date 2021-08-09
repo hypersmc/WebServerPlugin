@@ -23,7 +23,10 @@ import java.net.URL;
 
 public class PhPGetter {
 
-    public static void PhPGetter() {
+    /*
+    Windows
+     */
+    public static void PhPGetter() { //nginx Windows
         Main main = JavaPlugin.getPlugin(Main.class);
         String url = "http://nginx.org/download/nginx-1.20.1.zip";
         try {
@@ -38,6 +41,59 @@ public class PhPGetter {
             }
         }
     }
+    public static void PhPGetter2() { //PHP Windows
+        Main main = JavaPlugin.getPlugin(Main.class);
+        String url = "https://windows.php.net/downloads/releases/php-8.0.7-Win32-vs16-x64.zip";
+        try {
+            File dir = new File(main.getDataFolder() + "/tempfiles/");
+            dir.mkdirs();
+            downloadphp(url, main.getDataFolder() + "/tempfiles/" + "php.zip");
+            main.getLogger().info("File downloaded!");
+            PhPUnzipper.PhPUnzipper2();
+        } catch (IOException e) {
+            if (main.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*
+    Linux
+     */
+
+    public static void PhPGetter3(){ //nginx Linux
+        Main main = JavaPlugin.getPlugin(Main.class);
+        String url = "http://nginx.org/download/nginx-1.20.1.tar.gz";
+        try {
+            File dir = new File(main.getDataFolder() + "/tempfiles/");
+            dir.mkdirs();
+            downloadphp(url, main.getDataFolder() + "/tempfiles/" + "nginxlinux.zip");
+            main.getLogger().info("File downloaded!");
+            PhPUnzipper.PhPUnzipper3();
+        } catch (IOException e) {
+            if (main.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void PhPGetter4(){ //PHP Linux
+        Main main = JavaPlugin.getPlugin(Main.class);
+        String url = "https://www.php.net/distributions/php-8.0.7.tar.gz";
+        try {
+            File dir = new File(main.getDataFolder() + "/tempfiles/");
+            dir.mkdirs();
+            downloadphp(url, main.getDataFolder() + "/tempfiles/" + "phplinux.zip");
+            main.getLogger().info("File downloaded!");
+            PhPUnzipper.PhPUnzipper4();
+        } catch (IOException e) {
+            if (main.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 
     private static void downloadphp(String urld, String location) throws IOException {
         URL url = new URL(urld);

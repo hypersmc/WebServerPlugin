@@ -33,11 +33,12 @@ public class Main extends JavaPlugin implements Listener {
     public static String closeConnection = "!Close Connection!";
     private int listeningport;
     private Main m = this;
+    private boolean shutdown = false;
     private Thread acceptor;
     private boolean acceptorRunning;
     private ServerSocket ss;
     public static String ver;
-    private int version = 3;
+    private int version = 4;
     private synchronized boolean getAcceptorRunning() {
         return acceptorRunning;
     }
@@ -69,6 +70,7 @@ public class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        this.shutdown = false;
         this.getLogger().info("Your current OS name: " + OS);
         /*
         Checking config version and makes sure it matches up to default version.
@@ -132,9 +134,7 @@ public class Main extends JavaPlugin implements Listener {
                 sethtmlfiles();
             }
         }else if (!this.getConfig().getBoolean("UseHtml") || this.getConfig().getBoolean("UsePHP")){
-            if (!new File(getDataFolder() + "/web/", "index.php").exists()) {
-                saveResource("web/index.php", false);
-            }
+
         }else {
             logger.warning("Neither HTML or PHP was enabled! disabling plugin!");
             Bukkit.getScheduler().cancelTasks(this);
@@ -142,16 +142,12 @@ public class Main extends JavaPlugin implements Listener {
         }
 
         File file = new File("plugins/WebPlugin/web/index.html");
-        File file2 = new File("plugins/WebPlugin/web/index.php");
+
         if (!file.exists()){
             logger.warning("No index for html was found!");
             logger.info("This error can be ignored if you use PHP");
         }
-        if (!file2.exists()){
-            logger.warning("No index for php was found!");
-            logger.info("This error can be ignored if you use HTML");
 
-        }
         debug = getConfig().getBoolean("debug");
         if (new File("plugins/WebPlugin/ssl/").exists()){
             logger.info("SSL Folder exist!");
@@ -174,11 +170,14 @@ public class Main extends JavaPlugin implements Listener {
          */
 
         if (getConfig().getBoolean("UsePHP")){
-            if (new File("plugins/WebPlugin/phpcore").exists()) {
+            if (new File("plugins/WebPlugin/phpcore").exists() && new File("plugins/WebPlugin/php").exists()) {
                 logger.info("php files exist.");
             }else {
                 logger.info("started downloading phpcore");
                 PhPGetter.PhPGetter();
+                PhPGetter.PhPGetter2();
+                //PhPGetter.PhPGetter3();
+                //PhPGetter.PhPGetter4();
             }
         }
         if (getConfig().getBoolean("UseHtml")) {
@@ -239,6 +238,7 @@ public class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        this.shutdown = true;
         if (getConfig().getBoolean("UseHtml")) {
             acceptorRunning = false;
             Socket sockCloser;
@@ -263,14 +263,14 @@ public class Main extends JavaPlugin implements Listener {
     public void stopphpcore(){
         try {
             String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe -s quit -p " + getDataFolder() + "/phpcore/nginx-1.20.1/";
+            String command2 = "CMD /C taskkill /f /IM php.exe /T";
             String line;
             if (isWindows()) {
                 Process p = Runtime.getRuntime().exec(command);
+                Process p2 = Runtime.getRuntime().exec(command2);
                 if (this.getConfig().getBoolean("debug")) {
-                    BufferedReader bri = new BufferedReader
-                            (new InputStreamReader(p.getInputStream()));
-                    BufferedReader bre = new BufferedReader
-                            (new InputStreamReader(p.getErrorStream()));
+                    BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
                     while ((line = bri.readLine()) != null) {
                         System.out.println(line);
                     }
@@ -295,10 +295,32 @@ public class Main extends JavaPlugin implements Listener {
     }
     public void reloadphpcore(){
         try {
+            /*
+            Windows commands
+            */
+
+            /* Nginx */
             String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe -s reload -p " + getDataFolder() + "/phpcore/nginx-1.20.1/";
+            /* PHP kill */
+            String command2 = "CMD /C taskkill /f /IM php.exe /T";
+            /* PHP start */
+            String command3 = this.getDataFolder() + "/php/php.exe -S " + this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("phpport") + " -t " + this.getDataFolder() + "/php/public/";
+
+            /*
+            Linux commands
+            */
+
+             /* Nginx */
+            String command4 = this.getDataFolder() + "";
+            /* PHP kill */
+            String command5 = "killall -9 php";
+            /* PHP start */
+            String command6 = "";
+
             String line;
             if (isWindows()) {
                 Process p = Runtime.getRuntime().exec(command);
+                Process p2 = Runtime.getRuntime().exec(command2);
                 if (this.getConfig().getBoolean("debug")) {
                     BufferedReader bri = new BufferedReader
                             (new InputStreamReader(p.getInputStream()));
@@ -315,7 +337,11 @@ public class Main extends JavaPlugin implements Listener {
                     p.waitFor();
                     System.out.println("Done.");
                 }
+                Process p3 = Runtime.getRuntime().exec(command3);
             }else if (isUnix()) {
+                Process p = Runtime.getRuntime().exec(command4);
+                Process p2 = Runtime.getRuntime().exec(command5);
+                Process p3 = Runtime.getRuntime().exec(command6);
                 this.getLogger().info("Your os is: "+OS);
                 this.getLogger().info("Sorry but for now only Windows is supported on php. Linux is comming soon!");
 
@@ -330,32 +356,46 @@ public class Main extends JavaPlugin implements Listener {
         this.getLogger().info("checking file permissions");
         FilePermissions();
         this.getLogger().info("Making sure that right ip and port is set.");
-        Changeconf(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "localhost", this.getConfig().getString("listeningport") + "");
-        Changeconf(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "80", this.getConfig().getString("ServerIP") + "");
+        Changeconf(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "localhost", this.getConfig().getString("ServerIP") + "");
+        Changeconf(this.getDataFolder() + "/phpcore/nginx-1.20.1/conf/nginx.conf", "80", this.getConfig().getString("listeningport") + "");
         this.getLogger().info("Success!");
 
         try {
-
+            this.getLogger().info(getConfig().getString("ServerIP") + ":" + getConfig().getString("phpport"));
+            File folder = new File(this.getDataFolder() + "/php/public/");
+            folder.mkdirs();
             String command = this.getDataFolder() + "/phpcore/nginx-1.20.1/nginx.exe -p " + getDataFolder() + "/phpcore/nginx-1.20.1/";
+            String command2 = this.getDataFolder() + "/php/php.exe -S " + this.getConfig().getString("ServerIP") + ":" + this.getConfig().getString("phpport") + " -t " + this.getDataFolder() + "/php/public/";
+            this.getLogger().info(command2);
             String line;
-
             if (isWindows()) {
                 System.out.println("found windows.");
                 Process p = Runtime.getRuntime().exec(command);
+                this.getLogger().info("Attempting to start PHP");
+                Process p2 = Runtime.getRuntime().exec(command2);
                 if (this.getConfig().getBoolean("debug")) {
-                    BufferedReader bri = new BufferedReader
-                            (new InputStreamReader(p.getInputStream()));
-                    BufferedReader bre = new BufferedReader
-                            (new InputStreamReader(p.getErrorStream()));
+                    BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                    BufferedReader bri2 = new BufferedReader(new InputStreamReader(p2.getInputStream()));
+                    BufferedReader bre2 = new BufferedReader(new InputStreamReader(p2.getErrorStream()));
                     while ((line = bri.readLine()) != null) {
                         System.out.println(line);
                     }
+                    while ((line = bri2.readLine()) != null) {
+                        System.out.println(line);
+                    }
                     bri.close();
+                    bri2.close();
                     while ((line = bre.readLine()) != null) {
                         System.out.println(line);
                     }
+                    while ((line = bre2.readLine()) != null) {
+                        System.out.println(line);
+                    }
                     bre.close();
+                    bre2.close();
                     p.waitFor();
+                    p2.waitFor();
                     System.out.println("Done.");
                 }
             } else if (isUnix()) {
@@ -374,6 +414,7 @@ public class Main extends JavaPlugin implements Listener {
                 e.printStackTrace();
             }
         }
+
     }
     public void runweb(JavaPlugin instance) {
         new BukkitRunnable() {

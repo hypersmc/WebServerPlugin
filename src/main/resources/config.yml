@@ -1,6 +1,10 @@
+#Little headsup before you think of using php. For now its only Windows and if/when you do enable it Nginx and php will run.
+#Tho to get access to the website (directly from php) you need to use "ServerIP:phpport" You can go thru to do this with nginx
+#So it's "ServerIP:listningport"
 #Webserver configuration
-listeningport: 25567
+listeningport: 25567 #Is used for both php webserver and html.
 listeningportssl: 25568
+phpport: 25569 #Used for FastCGI to allow PHP code execution. This is later used in the nginx.conf file.
 EnableWebserver: true #This should always be on.
 ServerIP: localhost #this is used for php ip.
 #Only enable if I ask you to.
@@ -21,4 +25,4 @@ SSLJKSKey: "Yourkey"
 ###Be sure you do it right otherwise it wont work!
 
 #DO NOT IN ANY WAY EDIT THIS
-ConfigVersion: 3
+ConfigVersion: 4

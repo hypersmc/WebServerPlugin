@@ -46,7 +46,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>C:\Users\JumpWatch\Desktop\testserver\plugins</outputDirectory>
+                            <outputDirectory>C:\Users\jesp853b\Desktop\testserver\plugins</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}/target</directory>

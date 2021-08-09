@@ -1,11 +1,8 @@
 {
-  "language": "ruby",
+  "language": "java",
+  "before_install": "– chmod +x gradlew",
   "os": [
-    "linux"
+      "linux"
   ],
-  "dist": "xenial",
-  "rvm": [
-    "2.2",
-    "jruby"
-  ]
+  "dist": "xenial"
 }

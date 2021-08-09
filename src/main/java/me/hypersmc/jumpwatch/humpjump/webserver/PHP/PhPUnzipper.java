@@ -20,7 +20,11 @@ import java.util.zip.ZipInputStream;
 
 public class PhPUnzipper {
     private static final int BUFFER_SIZE = 4096;
-    public static void PhPUnzipper(){
+
+    /*
+    Windows
+     */
+    public static void PhPUnzipper(){//nginx Windows
         Main main = JavaPlugin.getPlugin(Main.class);
         String zipFilePath = main.getDataFolder() + "/tempfiles/nginx.zip";
 
@@ -34,6 +38,56 @@ public class PhPUnzipper {
         }
 
     }
+    public static void PhPUnzipper2(){ //PHP Windows
+        Main main = JavaPlugin.getPlugin(Main.class);
+        String zipFilePath = main.getDataFolder() + "/tempfiles/php.zip";
+
+        String destDir = main.getDataFolder() + "/php/";
+        try {
+            unzip(zipFilePath, destDir);
+        } catch (IOException e) {
+            if (main.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    /*
+    Linux
+     */
+
+    public static void PhPUnzipper3(){ //nginx Linux
+        Main main = JavaPlugin.getPlugin(Main.class);
+        String zipFilePath = main.getDataFolder() + "/tempfiles/nginxlinux.zip";
+        String destDir = main.getDataFolder() + "/phpcorelinux/";
+        try {
+            unzip(zipFilePath, destDir);
+        } catch (IOException e) {
+            if (main.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void PhPUnzipper4(){//PHP Linux
+        Main main = JavaPlugin.getPlugin(Main.class);
+        String zipFilePath = main.getDataFolder() + "/tempfiles/phplinux.zip";
+        String destDir = main.getDataFolder() + "/phplinux/";
+        try {
+            unzip(zipFilePath, destDir);
+        } catch (IOException e) {
+            if (main.getConfig().getBoolean("debug")) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    /*
+    .zip file unzipper
+     */
+
     public static void unzip(String zipFilePath, String destDirectory) throws IOException {
         File destDir = new File(destDirectory);
         if (!destDir.exists()) {
